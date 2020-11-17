@@ -4,6 +4,10 @@ I bought such a toy for my son, it is sold with a set of black-and-white paper d
 One of the discs is a blank one, on which you're supposed to draw your own cartoon.
 I wanted to go further, and use a computer to design my own discs.
 
+# "hardware" compatibility
+The discs are custom sized for my son's toy
+Though, all dimensions are configurable, so the discs could be adapted to any different-sized similar praxinoscope. If you have such a different praxino, let me know about it.
+
 # Quick Sample
 To see a sample, download the pdf file from this repository.
 You can simply print, cut, and use with your own praxinoscope.
