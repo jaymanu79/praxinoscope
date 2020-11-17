@@ -1,0 +1,244 @@
+%!PS
+
+
+% PARAMETERS
+% Sets the dimensions for my own praxinoscope
+% Can be adapted for a different one
+	% size parameters (depends on praxinoscope model)
+	/outercirclesize 6.2 def
+	/innercirclesize 1.8 def
+	/notchsize 1 def
+	/quadrantscount 10 def
+	/holepos 0.5 def  % distance from hole center to outer circle
+	/holeapart 0.6 def % orthogonal distance from hole center to cut line
+	/holeradius 0.1 def % hole radius
+	/picstart 1.8 def % distance between inner circle and visible zone
+	/picheight 2.5 def % max height of visible zone
+
+	% adjustments
+	/picpos 0.6 def % picture position between circle in %
+	/picsize 1 def  % pic size in cm
+	/pichoffset 0.2 def % trim picture centering
+	/picvoffset 0.0 def % trim picture pos
+	/picmargin 1 def % margin between picture and radius in °
+	
+% Main function drawing a disc
+/drawPraxino {	% Main function drawing a disc - parameters : Xpos, Ypos, picstart, (char list for char mode OR picture folder), picture mode, show quadrants
+	gsave
+	% rescale to centimeter units
+	matrix currentmatrix /originmat exch def
+	/umatrix {originmat matrix concatmatrix setmatrix} def
+	[28.3465 0 0 28.3465 10.5 100.0] umatrix
+	
+	% load parameters
+	/showquadrants exch def %	
+	/picturemode exch def %
+	picturemode (chars) eq { /chars exch def } if
+	picturemode (image) eq { /imgsizeY exch def /imgsizeX exch def /folder exch def /picstart exch def } if
+
+	/circley exch def %
+	/circlex exch def % disc position on page
+
+	
+	% DISC STRUCTURE
+
+		% init referential
+		/quadrantangle 360 quadrantscount div def
+		gsave
+		circlex circley translate
+		quadrantangle 2 div neg rotate
+		% circles
+			0 0 1 setrgbcolor
+			0.01 setlinewidth
+			% outer circle
+				newpath 0 0 outercirclesize 0 360 arc closepath stroke
+			% inner circle
+				newpath 0 0 innercirclesize 0 360 arc closepath	stroke
+
+		% holes
+			 newpath
+			 holeapart     outercirclesize holepos sub holeradius 0 360 arc closepath fill
+			 holeapart neg outercirclesize holepos sub holeradius 0 360 arc closepath fill
+
+		% radiuses
+			% base radius and notch (to cut)
+				 newpath
+				 1 0 0 setrgbcolor
+				 [.1 .1] 0 setdash
+				 0 innercirclesize moveto
+				 0 outercirclesize lineto
+				 0 innercirclesize neg moveto
+				 0 innercirclesize notchsize add neg lineto
+				 stroke
+			
+			% optional radiuses		
+				showquadrants 1 eq {
+					quadrantangle rotate
+					.8 .8 .8 setrgbcolor
+					[1 0] 0 setdash
+					 2 1 quadrantscount { 
+						 /n exch def
+						 newpath
+						 n quadrantscount 2 div 1 add round eq {0 innercirclesize notchsize add moveto} {0 innercirclesize moveto}  ifelse
+						 0 outercirclesize lineto
+						 stroke
+						 quadrantangle rotate
+					} for
+				} if
+
+	 % helper funcs
+	 
+	  /concatstrings % (a) (b) -> (ab)  
+	   { exch dup length    
+		 2 index length add string    
+		 dup dup 4 2 roll copy length
+		 4 -1 roll putinterval
+	   } bind def  
+				
+				
+	 % Animation frames
+		grestore
+		circlex circley translate
+		 /rayonpic  outercirclesize innercirclesize sub picpos mul innercirclesize add def
+		 /halfpic picsize 2 div def
+
+		picturemode (digits) eq {
+			 %/Montserrat_ExtraBold findfont picsize scalefont setfont
+			 /alarmclock.ttf findfont picsize scalefont setfont
+
+			 -1 1 scale % for mirror effect
+			 1 1 quadrantscount { 
+				 /n exch def
+				 newpath
+				 0 0 0 setrgbcolor
+				 0 halfpic sub pichoffset add   rayonpic halfpic sub picvoffset add moveto
+				 n 1 sub 2 string cvs  show
+				 quadrantangle rotate
+				 } for
+		} if
+
+		picturemode (chars) eq {
+			 /Montserrat_ExtraBold findfont picsize scalefont setfont
+ 			 -1 1 scale % for mirror effect
+			 1 1 quadrantscount { 
+				 /n exch def
+				 newpath
+				 0 0 0 setrgbcolor
+				 0 halfpic sub pichoffset add   rayonpic halfpic sub picvoffset add moveto
+				 chars n 1 sub get show
+				 quadrantangle rotate
+				 } for
+		} if
+		
+		picturemode (fill) eq {
+				0.01 setlinewidth
+				1 1 quadrantscount { 
+					/n exch def
+					newpath
+					 n 10 div 0 10 n sub 10 div setrgbcolor
+					 quadrantangle picmargin sub    cos innercirclesize picstart               add mul quadrantangle picmargin sub sin innercirclesize picstart               add mul    moveto
+					 quadrantangle picmargin sub    cos innercirclesize picstart picheight add add mul quadrantangle picmargin sub sin innercirclesize picstart picheight add add mul    lineto
+					 0 picmargin add                cos innercirclesize picstart picheight add add mul 0 picmargin add             sin innercirclesize picstart picheight add add mul    lineto
+					 0 picmargin add                cos innercirclesize picstart               add mul 0 picmargin add             sin innercirclesize picstart               add mul    lineto
+					 quadrantangle picmargin sub    cos innercirclesize picstart               add mul quadrantangle picmargin sub sin innercirclesize picstart               add mul    lineto closepath
+					 fill
+					 quadrantangle rotate
+				} for
+		} if	
+
+		
+		
+		
+		picturemode (image) eq {
+				0.01 setlinewidth
+				0 0 0 setrgbcolor
+				/imgratio imgsizeX imgsizeY div def
+				/xmin quadrantangle 2 div neg sin innercirclesize picstart add mul def
+				/xmax quadrantangle 2 div sin innercirclesize picstart add mul def
+				/ymin innercirclesize picstart add def
+				/imgwidth  xmax xmin sub def
+				/imgheight imgwidth 1 imgratio div mul def
+				 
+				1 1 quadrantscount { 
+				 /n exch def
+				 newpath
+					 xmin ymin moveto
+					 imgwidth 0 rlineto
+					 0 imgheight rlineto
+					 imgwidth neg 0 rlineto
+					 0 imgheight neg rlineto closepath
+				 stroke
+				 
+				 % EXTERNAL PIC LOAD
+
+				/fname (frames/) folder concatstrings (/) concatstrings n 1 sub 1000 add 4 string cvs 1 3 getinterval concatstrings (.jpg) concatstrings def
+				 gsave
+					 xmin imgwidth add ymin translate     % set lower left of image 
+					 imgwidth neg imgheight scale         % size of rendered image. Negative width for mirror effect
+					  imgsizeX                   % number of columns per row
+					  imgsizeY                    % number of rows
+					  8                    % bits per color channel (1, 2, 4, or 8)
+					  [imgsizeX 0 0 imgsizeY neg 0 imgsizeY]       % transform array... maps unit square to pixel
+					  fname (r) file /DCTDecode filter % opens the file and filters the image data
+					  false                 % pull channels from separate sources
+					  3                    % 3 color channels (RGB)
+					  colorimage
+				grestore
+				 
+				 
+				 quadrantangle rotate
+			} for
+		} if	
+	grestore
+	} def
+
+%%%%%%%%
+%% MAIN SECTION
+%% defining the discs to be drawn, using drawPraxino function
+%% 
+%% syntax :
+%%
+%%   - digits mode : uses digit 0 to 9 as frames
+%%                   uses "alarm clock" truetype font which must be present in the current dir
+%%     Xpos Ypos (digits) showOutlines drawPraxino
+%%
+%%   - character mode : uses a defined list of characters as frame, 1 character per frame
+%%     Xpos Ypos [character list] (chars) showOutlines drawPraxino
+%%
+%%   - fill mode : uses plain color squares as frames
+%%     Xpos Ypos (fill) showOutlines drawPraxino
+%%
+%%   - Picture mode : uses a set of jpeg images as frames. 1 image per frame.
+%%                    jpeg frames must be stored in directory frames/[dirname] with file names 000.jpg to 009.jpg
+%%                    and have identical pixel size
+%%     Xpos Ypos picstart [dirname] Xsize Ysize (image) showOutlines drawPraxino       
+%%
+%% parameters :
+%%  Xpos : horizontal position of the disc center on the page in cm
+%%  Ypos : vertical   position of the disc center on the page in cm
+%%  showOutlines : 1 to print lines to be cut, 0 to have them invisible
+%%  Xsize : width  of the jpeg files in pixels
+%%  Ysize : height of the jpeg files in pixels
+%% picstart : sets the distance between the center of the disc and the pictures.
+%%            images will be resized accordingly, so it can be hand tuned for preferred result
+%%
+
+%% EXAMPLE FIRST PAGE : digits and letters
+21 2 div 18 (digits) 1 drawPraxino
+21 2 div 4 [(A)(B)(C)(D)(E)(F)(G)(H)(I)(J)] (chars) 1 drawPraxino
+showpage
+
+%% EXAMPLE SECOND PAGE : custom characters and color fill
+21 2 div 4 [(|)(/)(-)(\\)(|)(|)(/)(-)(\\)(|)] (chars) 1 drawPraxino
+21 2 div 18 (fill) 1 drawPraxino
+showpage
+
+%% EXAMPLE THIRD PAGE : jpeg pictures
+21 2 div 18 1.4 (totoro) 395 486 (image) 1 drawPraxino
+21 2 div 4  2.2 (panther) 480 270 (image) 1 drawPraxino
+showpage
+
+%% EXAMPLE FOURTH PAGE : other set of jpeg pictures
+21 2 div 18 2 (mario) 500 349 (image) 1 drawPraxino
+21 2 div 4  2 (road) 510 336 (image) 1 drawPraxino
+showpage
